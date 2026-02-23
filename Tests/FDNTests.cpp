@@ -121,9 +121,10 @@ public:
             float outL, outR;
             fdn.processSample (1.0f, 1.0f, outL, outR);
 
-            // 1000 サンプル後に出力があるか確認
+            // 20000 サンプル後に出力があるか確認
+            // (Input diffuser spreads energy over ~13000 samples)
             float totalEnergy = 0.0f;
-            for (int i = 0; i < 1000; ++i)
+            for (int i = 0; i < 20000; ++i)
             {
                 fdn.processSample (0.0f, 0.0f, outL, outR);
                 totalEnergy += outL * outL + outR * outR;

@@ -34,6 +34,7 @@ target_sources(WetStringReverb
         Source/DSP/AttenuationFilter.cpp
         Source/DSP/Saturation.cpp
         Source/DSP/SaturationToneFilter.cpp
+        Source/DSP/Diffuser.cpp
         Source/DSP/VelvetNoise.cpp
         Source/DSP/EarlyReflections.cpp
         Source/DSP/FDNReverb.cpp
@@ -96,6 +97,7 @@ if(BUILD_TESTS)
             Source/DSP/AttenuationFilter.cpp
             Source/DSP/Saturation.cpp
             Source/DSP/SaturationToneFilter.cpp
+            Source/DSP/Diffuser.cpp
             Source/DSP/VelvetNoise.cpp
             Source/DSP/EarlyReflections.cpp
             Source/DSP/FDNReverb.cpp
