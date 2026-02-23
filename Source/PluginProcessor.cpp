@@ -37,10 +37,10 @@ void WetStringReverbProcessor::prepareToPlay (double sampleRate, int samplesPerB
     currentSampleRate = sampleRate;
     currentBlockSize = samplesPerBlock;
 
-    // Pre-delay
+    // Pre-delay (each delay line is single-channel)
     juce::dsp::ProcessSpec spec { sampleRate,
                                    static_cast<juce::uint32> (samplesPerBlock),
-                                   2 };
+                                   1 };
     for (auto& pd : preDelayLine)
     {
         pd.reset();
@@ -158,8 +158,8 @@ void WetStringReverbProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         for (int i = 0; i < numSamples; ++i)
         {
             float in = channelData[i];
-            preDelayLine[ch].pushSample (ch, in);
-            channelData[i] = preDelayLine[ch].popSample (ch);
+            preDelayLine[ch].pushSample (0, in);
+            channelData[i] = preDelayLine[ch].popSample (0);
         }
     }
 

@@ -1,4 +1,5 @@
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 #include "../Source/PluginProcessor.h"
 #include "../Source/Parameters.h"
 
@@ -196,6 +197,8 @@ static PluginBasicTests pluginBasicTests;
 // テストランナー（main）
 int main()
 {
+    juce::ScopedJuceInitialiser_GUI init;
+
     juce::UnitTestRunner runner;
     runner.runAllTests();
 

@@ -27,55 +27,28 @@ public:
     void setCoefficients (float gainLow, float gainHigh,
                           float crossoverFreq, float sampleRate)
     {
-        // 1 次シェルビングフィルタ設計
-        // Moorer/Jot 方式の簡略化版
-        float wc = 2.0f * 3.14159265f * crossoverFreq / sampleRate;
-        float t = std::tan (wc * 0.5f);
+        // Jot attenuation filter (Schlecht 2018 PhD thesis)
+        // H(z) = (b0 + b1*z^-1) / (1 + a1*z^-1)
+        // Design: H(1) = gainLow (DC), H(-1) = gainHigh (Nyquist)
 
-        // 低域ゲインと高域ゲインの比
-        float gRatio = gainHigh / (gainLow + 1.0e-12f);
-
-        // 係数計算
-        float k = (1.0f - gRatio * t) / (1.0f + gRatio * t);
-
-        b0 = gainLow * (1.0f + k) * 0.5f + gainLow * (1.0f - k) * 0.5f * gRatio;
-        b1 = gainLow * (1.0f - k) * 0.5f + gainLow * (1.0f + k) * 0.5f * gRatio;
-
-        // より安定な近似: Jot の 1 次減衰フィルタ
-        // g_dc = gainLow, g_pi = gainHigh
-        float p = (gainLow + gainHigh) * 0.5f;
-        float q = (gainLow - gainHigh) * 0.5f;
-
-        // 1 次 IIR: H(z) = p + q * (1 + a1*z^-1) / ...
-        // 簡略版: 直接 1 次ローパスブレンド
-        float alpha = std::max (0.0f, std::min (1.0f,
-            crossoverFreq / (sampleRate * 0.5f)));
-
-        b0 = gainLow * (1.0f - alpha) + gainHigh * alpha;
-        b1 = gainLow * alpha + gainHigh * (1.0f - alpha);
-        a1Coeff = -(2.0f * alpha - 1.0f);
-
-        // Jot 方式の正確な実装
-        // 参考: Schlecht (2018) PhD thesis Eq. 3.24
-        float cos_wc = std::cos (wc);
-        float gL = gainLow;
-        float gH = gainHigh;
-
-        // a1 を決定（クロスオーバーでの応答条件から）
-        if (std::abs (gL - gH) < 1.0e-6f)
+        if (std::abs (gainLow - gainHigh) < 1.0e-6f)
         {
-            // 低域と高域のゲインが同じ場合、単純なスカラー乗算
-            b0 = gL;
+            b0 = gainLow;
             b1 = 0.0f;
             a1Coeff = 0.0f;
+            return;
         }
-        else
-        {
-            float c = (gH * gH - gL * gL * t * t) / (gH * gH + gL * gL * t * t + 1.0e-12f);
-            a1Coeff = -c;
-            b0 = 0.5f * ((gL + gH) + (gL - gH) * c);
-            b1 = 0.5f * ((gL + gH) - (gL - gH) * c);
-        }
+
+        float wc = 3.14159265f * crossoverFreq / sampleRate;
+        float t = std::tan (wc);
+
+        // First-order allpass coefficient for crossover
+        float a1 = (t - 1.0f) / (t + 1.0f);
+
+        // Shelving coefficients
+        b0 = (gainLow * (1.0f + a1) + gainHigh * (1.0f - a1)) * 0.5f;
+        b1 = (gainLow * (1.0f + a1) - gainHigh * (1.0f - a1)) * 0.5f;
+        a1Coeff = a1;
     }
 
     float process (float input)

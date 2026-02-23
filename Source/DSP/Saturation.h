@@ -56,18 +56,31 @@ public:
         // 非線形関数適用
         float saturated = applyNonlinearity (driven);
 
-        // DC ブロッカー
-        float dcBlocked = saturated - dcX1 + dcBlockCoeff * dcY1;
-        dcX1 = saturated;
-        dcY1 = dcBlocked;
+        // DC ブロッカー（非対称オフセットが有効な場合のみ）
+        float result;
+        if (std::abs (asymmetryOffset) > 1.0e-6f)
+        {
+            float dcBlocked = saturated - dcX1 + dcBlockCoeff * dcY1;
+            dcX1 = saturated;
+            dcY1 = dcBlocked;
+            result = dcBlocked;
+        }
+        else
+        {
+            result = saturated;
+        }
 
         // Amount ブレンド
-        return (1.0f - amount) * input + amount * dcBlocked;
+        return (1.0f - amount) * input + amount * result;
     }
 
     void reset()
     {
-        dcX1 = 0.0f;
+        // Pre-initialize DC blocker state so zero input produces zero output
+        // even when asymmetry offset is non-zero
+        float driven = asymmetryOffset;
+        float saturated = applyNonlinearity (driven);
+        dcX1 = saturated;
         dcY1 = 0.0f;
     }
 
