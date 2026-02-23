@@ -8,7 +8,7 @@ namespace DSP
 {
 
 /**
- * 8×8 Householder 反射行列。
+ * 8x8 Householder 反射行列。
  *
  * A = I - (2/N) * ones(N,N)
  *

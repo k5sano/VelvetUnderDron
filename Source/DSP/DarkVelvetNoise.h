@@ -12,7 +12,7 @@ namespace DSP
  * 非指数的減衰（ダブルスロープ）を実現。
  * 線形処理のためオーバーサンプリング不要。
  *
- * 参考: Fagerström et al., "Non-Exponential Reverb Modeling Using DVN", JAES 72(6) (2024)
+ * 参考: Fagerstrom et al., "Non-Exponential Reverb Modeling Using DVN", JAES 72(6) (2024)
  */
 class DarkVelvetNoise
 {
@@ -32,7 +32,7 @@ public:
 
     void setParameters (float decayShapePercent, float rt60Seconds)
     {
-        decayShape = decayShapePercent * 0.01f;  // 0–1
+        decayShape = decayShapePercent * 0.01f;  // 0-1
         rt60 = rt60Seconds;
         updateEnvelopeCoefficients();
     }
@@ -85,7 +85,7 @@ private:
     {
         int position;
         float sign;
-        int width;      // パルス幅（1–8 サンプル）
+        int width;      // パルス幅（1-8 サンプル）
         float envelope;
     };
 
@@ -109,7 +109,7 @@ private:
             rng = rng * 1664525u + 1013904223u;
             float sign = (rng & 0x80000000u) ? -1.0f : 1.0f;
 
-            // ランダムパルス幅（1–8）
+            // ランダムパルス幅（1-8）
             rng = rng * 1664525u + 1013904223u;
             int width = 1 + static_cast<int> (rng % 8u);
 
@@ -131,7 +131,7 @@ private:
         for (auto& pulse : dvnPulses)
         {
             float t = static_cast<float> (pulse.position) / static_cast<float> (sr);
-            // ダブルスロープ: (1 - shape) * exp(-t/τ1) + shape * exp(-t/τ2)
+            // ダブルスロープ: (1 - shape) * exp(-t/tau1) + shape * exp(-t/tau2)
             pulse.envelope = (1.0f - decayShape) * std::exp (-t / (tau1 + 1.0e-6f))
                            + decayShape * std::exp (-t / (tau2 + 1.0e-6f));
         }

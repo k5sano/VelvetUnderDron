@@ -1,3 +1,2 @@
 #include "DSP/FeedbackMatrix.h"
-
-// 実装はすべてヘッダー内。
+// Implementation is in the header.

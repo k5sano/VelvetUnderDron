@@ -1,4 +1,2 @@
 #include "DSP/DelayLine.h"
-
-// 実装はすべてヘッダー内のインラインメソッド。
-// このファイルは CMake ソースリストとの整合性のために存在する。
+// Implementation is in the header.

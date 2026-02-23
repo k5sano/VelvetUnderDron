@@ -40,9 +40,9 @@ public:
 
         float freq;
         if (tone < 0.0f)
-            freq = 1000.0f + (1.0f + tone) * 7000.0f;  // 1kHz–8kHz
+            freq = 1000.0f + (1.0f + tone) * 7000.0f;  // 1kHz-8kHz
         else
-            freq = 8000.0f - tone * 4000.0f;             // 4kHz–8kHz
+            freq = 8000.0f - tone * 4000.0f;             // 4kHz-8kHz
 
         float w = 2.0f * 3.14159265f * freq / sr;
         lpCoeff = w / (1.0f + w);

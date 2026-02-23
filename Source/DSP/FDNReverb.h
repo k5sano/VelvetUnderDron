@@ -69,7 +69,7 @@ public:
             delayLines[i].setDelay (delayLength);
         }
 
-        // クロスオーバー周波数（hf_damping 0–100% → 1kHz–8kHz）
+        // クロスオーバー周波数（hf_damping 0-100% → 1kHz-8kHz）
         float crossoverHz = 1000.0f + (hfDamping * 0.01f) * 7000.0f;
 
         // 周波数依存減衰フィルタの更新

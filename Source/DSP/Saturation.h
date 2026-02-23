@@ -29,7 +29,7 @@ public:
         amount = amountPercent * 0.01f;
         driveLinear = std::pow (10.0f, driveDbs / 20.0f);
         type = static_cast<Type> (std::clamp (typeIndex, 0, 3));
-        asymmetryOffset = asymmetryPercent * 0.002f;  // 0–100% → 0–0.2
+        asymmetryOffset = asymmetryPercent * 0.002f;  // 0-100% → 0-0.2
     }
 
     void prepare (double sampleRate)
@@ -91,7 +91,7 @@ private:
         {
             case Type::Soft:
             {
-                // 3 次多項式ソフトクリップ: y = 1.5x - 0.5x³ (|x| <= 1)
+                // 3 次多項式ソフトクリップ: y = 1.5x - 0.5x^3 (|x| <= 1)
                 float clamped = std::clamp (x, -1.0f, 1.0f);
                 return 1.5f * clamped - 0.5f * clamped * clamped * clamped;
             }
