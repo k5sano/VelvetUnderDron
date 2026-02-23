@@ -36,32 +36,57 @@ public:
 
     void process (const float* input, float* output, int numSamples, float gain)
     {
+        const int ringSize = static_cast<int> (inputRingBuffer.size());
+
+        // ブロック分の入力をリングバッファに先行コピー
         for (int n = 0; n < numSamples; ++n)
         {
-            inputRingBuffer[static_cast<size_t> (writePos)] = input[n];
-            float sum = 0.0f;
+            int idx = (writePos + n) % ringSize;
+            inputRingBuffer[static_cast<size_t> (idx)] = input[n];
+        }
 
-            for (const auto& pulse : dvnPulses)
+        // 出力バッファをゼロクリア
+        std::fill (output, output + numSamples, 0.0f);
+
+        // pulse-outer → sample-inner（キャッシュ効率改善）
+        // 各パルスでスライディングウィンドウにより width ループを排除
+        for (const auto& pulse : dvnPulses)
+        {
+            const float coeff = pulse.sign * pulse.envelope;
+            if (std::abs (coeff) < 1.0e-8f)
+                continue;
+
+            const int w = pulse.width;
+            const float scaledCoeff = coeff / static_cast<float> (w);
+            const int base = writePos - pulse.position;
+
+            // n=0 のウィンドウ合計を初期化
+            float windowSum = 0.0f;
+            for (int j = 0; j < w; ++j)
             {
-                int readIdx = writePos - pulse.position;
-                if (readIdx < 0)
-                    readIdx += static_cast<int> (inputRingBuffer.size());
-
-                float sample = 0.0f;
-                for (int w = 0; w < pulse.width; ++w)
-                {
-                    int idx = readIdx - w;
-                    if (idx < 0)
-                        idx += static_cast<int> (inputRingBuffer.size());
-                    sample += inputRingBuffer[static_cast<size_t> (idx)];
-                }
-                sample /= static_cast<float> (pulse.width);
-                sum += pulse.sign * pulse.envelope * sample;
+                int idx = ((base - j) % ringSize + ringSize) % ringSize;
+                windowSum += inputRingBuffer[static_cast<size_t> (idx)];
             }
 
-            output[n] = sum * gain;
-            writePos = (writePos + 1) % static_cast<int> (inputRingBuffer.size());
+            output[0] += scaledCoeff * windowSum;
+
+            // スライディングウィンドウで残りサンプルを処理
+            for (int n = 1; n < numSamples; ++n)
+            {
+                int addIdx = ((base + n) % ringSize + ringSize) % ringSize;
+                int remIdx = ((base + n - w) % ringSize + ringSize) % ringSize;
+                windowSum += inputRingBuffer[static_cast<size_t> (addIdx)];
+                windowSum -= inputRingBuffer[static_cast<size_t> (remIdx)];
+                output[n] += scaledCoeff * windowSum;
+            }
         }
+
+        // ゲイン適用
+        for (int n = 0; n < numSamples; ++n)
+            output[n] *= gain;
+
+        // ライトポジションをブロック分進める
+        writePos = (writePos + numSamples) % ringSize;
     }
 
     void reset()
@@ -89,8 +114,8 @@ private:
         dvnLength = static_cast<int> (sr * 3.0);
         int numPulses = dvnLength / gridSize;
 
-        // パルス数上限 2000
-        numPulses = std::min (numPulses, 2000);
+        // パルス数上限 500（知覚的に十分な密度 ~167パルス/秒）
+        numPulses = std::min (numPulses, 500);
 
         dvnPulses.clear();
         dvnPulses.reserve (static_cast<size_t> (numPulses));
