@@ -57,6 +57,10 @@ target_compile_definitions(WetStringReverb
         JUCE_DISPLAY_SPLASH_SCREEN=0
 )
 
+if(MSVC)
+    target_compile_options(WetStringReverb PRIVATE /utf-8)
+endif()
+
 # リンク
 target_link_libraries(WetStringReverb
     PRIVATE
